@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.firepick</groupId>
   <artifactId>firerest-client</artifactId>
@@ -17,8 +16,9 @@
   </licenses>
   <scm>
     <url>https://github.com/firepick1/FireREST</url>
-    <connection>scm:git:git://github.com/firepick1/FireREST.git</connection>
-    <developerConnection>scm:git:git@github.com:firepick1/FireREST.git</developerConnection>
+    <connection>scm:git:git://github.com/firepick1/firerest-client.git</connection>
+    <developerConnection>scm:git:git@github.com:firepick1/firerest-client.git</developerConnection>
+    <tag>firerest-client-0.5.6</tag>
   </scm>
   <developers>
     <developer>
