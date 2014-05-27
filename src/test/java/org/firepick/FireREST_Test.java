@@ -62,7 +62,7 @@ public class FireREST_Test extends TestCase {
   }
 
   public void testProcessJson() throws MalformedURLException {
-    URL processUrl = new URL("http://localhost:8001/firerest/cv/1/gray/cve/calc-offset/process.json");
+    URL processUrl = new URL("http://localhost:8080/firerest/cv/1/gray/cve/calc-offset/process.json");
     JSONResult result = FireREST.get(processUrl);
 
     JSONResult stage = result.get("model");
@@ -79,7 +79,7 @@ public class FireREST_Test extends TestCase {
   public void testBadUrl() throws MalformedURLException {
     Exception caughtException = null;
     try {
-      URL processUrl = new URL("http://localhost:8001/firerest/cv/1/gray/cve/NOSUCHTHING/process.json");
+      URL processUrl = new URL("http://localhost:8080/firerest/cv/1/gray/cve/NOSUCHTHING/process.json");
       JSONResult result = FireREST.get(processUrl);
     } catch (Exception e) {
       System.out.println("CAUGHT EXPECTED EXCEPTION: " + e.getMessage());
