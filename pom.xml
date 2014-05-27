@@ -8,7 +8,7 @@
   <groupId>org.firepick</groupId>
   <artifactId>firerest-client</artifactId>
   <packaging>jar</packaging>
-  <version>0.5.7</version>
+  <version>0.5.8-SNAPSHOT</version>
   <name>firerest-client</name>
   <url>http://github.com/firepick1/FireREST</url>
   <description>Java client for FireREST web services</description>
@@ -23,7 +23,7 @@
     <url>https://github.com/firepick1/FireREST</url>
     <connection>scm:git:git://github.com/firepick1/firerest-client.git</connection>
     <developerConnection>scm:git:git@github.com:firepick1/firerest-client.git</developerConnection>
-    <tag>firerest-client-0.5.7</tag>
+    <tag>firerest-client-0.5.6</tag>
   </scm>
   <developers>
     <developer>
