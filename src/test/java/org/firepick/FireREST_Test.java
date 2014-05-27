@@ -23,7 +23,7 @@ public class FireREST_Test extends TestCase {
    */
   public static Test suite() {
     try {
-      URL url = new URL("http://localhost:8001/");
+      URL url = new URL("http://localhost:8080/");
       Object content = url.getContent();
     } catch (Exception e) {
       StringBuilder msg = new StringBuilder();
