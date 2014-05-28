@@ -3,29 +3,45 @@ package org.firepick;
 import java.net.*;
 import java.util.*;
 
-
 public class IPv4Scanner implements Runnable {
   long ipstart;
   long ipend;
   int msTimeout;
   List<InetAddress> addresses = new ArrayList<InetAddress>();
 
-  public static AbstractCollection<InetAddress> scanLocal256(int msTimeout) throws UnknownHostException, InterruptedException {
-    AbstractCollection<InetAddress> result = new ArrayList<InetAddress>();
-    InetAddress localhost = InetAddress.getLocalHost();
-    System.out.println("localhost: " + localhost.getHostAddress());
+  public static Collection<InetAddress> scanLocal256(int msTimeout) {
+    InetAddress localhost;
+		try {
+			localhost = InetAddress.getLocalHost();
+		} catch (UnknownHostException e) {
+			throw new FireRESTException(e); // Should not happen
+		}
+    //System.out.println("localhost: " + localhost.getHostAddress());
 
     long local0 = asLongAddress(localhost) & 0xFFFFFF00L;
-    System.out.println("localhost: " + Long.toHexString(local0));
+		try {
+			return scanRange(asInetAddress(local0), 255, msTimeout);
+		} catch (UnknownHostException e) {
+			throw new FireRESTException(e);
+		}
+	}
 
+  public static Collection<InetAddress> scanRange(InetAddress start, int count, int msTimeout) {
+    Collection<InetAddress> result = new ArrayList<InetAddress>();
     List<IPv4Scanner> scanners = new ArrayList<IPv4Scanner>();
     List<Thread> threads = new ArrayList<Thread>();
-    long addr = local0;
-    for (int i = 0; i < 32; i++) {
-      InetAddress iaddr = asInetAddress(addr);
-      IPv4Scanner scanner = new IPv4Scanner(iaddr, 8, msTimeout);
-      scanners.add(scanner);
-      addr += 8;
+    long addrStart = asLongAddress(start);
+		long addrEnd = addrStart + count;
+		int probesPerThread = 8;
+		for (long addr = addrStart; addr < addrEnd; addr += probesPerThread) {
+			try {
+				InetAddress iaddr = asInetAddress(addr);
+				long nProbes = Math.min(addrEnd, addr + probesPerThread) - addr;
+				IPv4Scanner scanner = new IPv4Scanner(iaddr, (int) nProbes, msTimeout);
+				scanners.add(scanner);
+			} catch (UnknownHostException e) {
+				throw new FireRESTException(e); // should never happen since addr is always valid
+			}
     }
     for (IPv4Scanner scanner: scanners) {
       Thread thread = new Thread(scanner);
@@ -33,7 +49,11 @@ public class IPv4Scanner implements Runnable {
       thread.start();
     }
     for (Thread thread: threads) {
-      thread.join();
+			try {
+				thread.join();
+			} catch (Exception e) {
+				// ignore ThreadInterruptedException
+			}
     }
     for (IPv4Scanner scanner: scanners) {
       result.addAll(scanner.getAddresses());
