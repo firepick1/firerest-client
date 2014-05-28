@@ -13,11 +13,11 @@ public class FireREST {
 
   /**
    * Load json from given file resource.
-   * This is a convenient equivalent to get() with a file URL.
+   * This is a convenient equivalent to getJSON() with a file URL.
    *
    * @return JSONResult 
    */
-  public static JSONResult get(File file) {
+  public static JSONResult getJSON(File file) {
     try {
       String json = new Scanner(file).useDelimiter("\\Z").next();
       return new JSONResult(json);
@@ -31,7 +31,7 @@ public class FireREST {
    *
    * @return JSONResult 
    */
-  public static JSONResult get(URL url) {
+  public static JSONResult getJSON(URL url) {
     try {
       String json = IOUtils.toString(url, Charsets.UTF_8);
       return new JSONResult(json);

@@ -57,15 +57,15 @@ public class JSONResult {
     return new JSONResult(null);
   }
 
-  private void throwExpected(String msg) {
+  private FireRESTException createException(String msg) {
     if (value instanceof JSONArray) {
-      throw new FireRESTException(msg + ((JSONArray) value).toJSONString());
+      return new FireRESTException(msg + ((JSONArray) value).toJSONString());
     }
     if (value instanceof JSONObject) {
-      throw new FireRESTException(msg + ((JSONObject) value).toJSONString());
+      return new FireRESTException(msg + ((JSONObject) value).toJSONString());
     }
     if (value == null) {
-      throw new FireRESTException(msg + "null");
+      return new FireRESTException(msg + "null");
     }
     throw new FireRESTException(msg + value.toString());
   }
@@ -80,7 +80,14 @@ public class JSONResult {
   /**
    * Return an integer for current JSON value, parsing string values as required.
    */
-  public int getInt() {
+  public Integer getInt() {
+    return getInt(null);
+  }
+
+  /**
+   * Return an integer for current JSON value, parsing string values as required.
+   */
+  public Integer getInt(Integer defaultValue) {
     if (value instanceof Number) {
       return ((Number) value).intValue();
     }
@@ -88,14 +95,23 @@ public class JSONResult {
       String s = (String) value;
       return Integer.parseInt(s);
     }
-    throwExpected("Expected integer:");
-    return 0; // never happens
+    if (value == null) {
+      return defaultValue;
+    }
+    throw createException("Expected integer:");
   }
 
   /**
    * Return a double number for current JSON value, parsing string values as required.
    */
-  public double getDouble() {
+  public Double getDouble() {
+    return getDouble(null);
+  }
+
+  /**
+   * Return a double number for current JSON value, parsing string values as required.
+   */
+  public Double getDouble(Double defaultValue) {
     if (value instanceof Number) {
       return ((Number) value).doubleValue();
     }
@@ -103,19 +119,39 @@ public class JSONResult {
       String s = (String) value;
       return Double.parseDouble(s);
     }
-    throwExpected("Expected number:");
-    return 0; // never happens
+    if (value == null) {
+      return defaultValue;
+    }
+    throw createException("Expected number:");
   }
 
   /**
    * Return string value for current JSON value
    */
   public String getString() {
+    return getString(null);
+  }
+
+  /**
+   * Return string value for current JSON value
+   */
+  public String getString(String defaultValue) {
     if (value instanceof String || value instanceof Number) {
       return value.toString();
     }
-    throwExpected("Expected string or number:");
-    return "never happens";
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof JSONArray) {
+      return ((JSONArray) value).toJSONString();
+    }
+    if (value instanceof JSONObject) {
+      return ((JSONObject) value).toJSONString();
+    }
+    if (value == null) {
+      return defaultValue;
+    }
+    throw createException("Expected string:");
   }
 
 }
