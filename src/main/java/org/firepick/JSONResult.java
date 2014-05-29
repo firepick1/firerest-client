@@ -1,5 +1,7 @@
 package org.firepick;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.simple.parser.*;
 import org.json.simple.*;
 
@@ -7,6 +9,7 @@ import org.json.simple.*;
  * Fluent wrapper for JSON result returned by FireREST
  */
 public class JSONResult {
+  static Logger logger = LoggerFactory.getLogger(JSONResult.class);
   Object value;
 
   protected JSONResult(Object value) {
@@ -15,13 +18,20 @@ public class JSONResult {
 
   /**
    * Parse given JSON string and set current JSON value
+   *
+   * @param JSON string
+   * @throw FireRESTException if json is invalid
    */
   public JSONResult(String json) {
-    try {
-      JSONParser parser = new JSONParser();
-      value = (JSONObject) parser.parse(json);
-    } catch (Exception e) {
-      throw new FireRESTException("Could not parse: " + json, e);
+    if (json == null) {
+      value = null;
+    } else {
+      try {
+	JSONParser parser = new JSONParser();
+	value = (JSONObject) parser.parse(json);
+      } catch (Exception e) {
+	throw new FireRESTException("Could not parse: " + json, e);
+      }
     }
   }
 
@@ -37,6 +47,8 @@ public class JSONResult {
       JSONArray array = (JSONArray) value;
       Object result = array.get(index);
       return new JSONResult(result);
+    } else if (value instanceof JSONObject) {
+      return get(String.valueOf(index));
     }
     return new JSONResult(null);
   }
@@ -53,6 +65,13 @@ public class JSONResult {
       JSONObject obj = (JSONObject) value;
       Object result = obj.get(key);
       return new JSONResult(result);
+    } else if (value instanceof JSONArray) {
+      try {
+	int index = Integer.parseInt(key);
+	return get(index);
+      } catch(NumberFormatException e) {
+        throw createException("Excpected JSONObject " + key + ":");
+      }
     }
     return new JSONResult(null);
   }
@@ -152,6 +171,26 @@ public class JSONResult {
       return defaultValue;
     }
     throw createException("Expected string:");
+  }
+
+  @Override
+  public boolean equals(Object thatObj) {
+    if (thatObj instanceof JSONResult) {
+      JSONResult that = (JSONResult) thatObj;
+      if (this.value == that.value) {
+        return true;
+      }
+      if (this.value == null || that.value == null) {
+        return false;
+      }
+      return getString().equals(that.getString());
+    }
+    return toString().equals(thatObj);
+  }
+
+  @Override
+  public String toString() {
+    return value == null ? "null" : getString();
   }
 
 }

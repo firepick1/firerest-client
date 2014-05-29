@@ -16,15 +16,15 @@ public class IPv4Scanner implements Runnable {
   /**
    * Scan a range of InetAddresses starting with the given address
    *
-   * @param start starting address of search
+   * @param start starting address of search; null implies subnetAddress0(null,24)
    * @param count number of addresses in range
    * @param msTimeout maximum time to wait for each host
    */
   public static Collection<InetAddress> scanRange(InetAddress start, int count, int msTimeout) {
-    logger.info("scanning {} addresses starting with {}", count, start.getHostAddress());
     if (start == null) {
-      throw new NullPointerException("start cannot be null");
+      start = subnetAddress0(null, 24);
     }
+    logger.info("scanning {} addresses starting with {}", count, start.getHostAddress());
     if (count < 1 || 4096 <= count) {
       throw new FireRESTException("Expected 0 < count < 4096");
     }
@@ -143,4 +143,5 @@ public class IPv4Scanner implements Runnable {
       throw new RuntimeException(e);
     }
   }
+
 }
