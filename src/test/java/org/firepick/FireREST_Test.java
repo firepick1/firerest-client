@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 // The following imports are required to run test content
-import java.io.File;
+import java.io.*;
 import java.net.*;
 
 public class FireREST_Test extends TestCase {
@@ -40,7 +40,7 @@ public class FireREST_Test extends TestCase {
 
   public void testCalcOffset_model() {
     File file  = new File("src/test/resources/calcOffset-model.json");
-    JSONResult result = FireREST.getJSON(file);
+    JSONResult result = new FireREST().getJSON(file);
 
     JSONResult stage = result.get("calcOffset-stage");
     JSONResult channel = stage.get("channels").get("0");
@@ -55,7 +55,7 @@ public class FireREST_Test extends TestCase {
 
   public void testCalcOffset_notfound() {
     File file  = new File("src/test/resources/calcOffset-notfound.json");
-    JSONResult result = FireREST.getJSON(file);
+    JSONResult result = new FireREST().getJSON(file);
 
     JSONResult channel = result.get("calcOffset-stage").get("channels").get("0");
     assertTrue(channel.isNull());
@@ -63,7 +63,7 @@ public class FireREST_Test extends TestCase {
 
   public void testProcessJson() throws MalformedURLException {
     URL processUrl = new URL("http://localhost:8080/firerest/cv/1/gray/cve/calc-offset/process.json");
-    JSONResult result = FireREST.getJSON(processUrl);
+    JSONResult result = new FireREST().getJSON(processUrl);
 
     JSONResult stage = result.get("model");
     JSONResult channel = stage.get("channels").get("0");
@@ -80,7 +80,7 @@ public class FireREST_Test extends TestCase {
     Exception caughtException = null;
     try {
       URL processUrl = new URL("http://localhost:8080/firerest/cv/1/gray/cve/NOSUCHTHING/process.json");
-      JSONResult result = FireREST.getJSON(processUrl);
+      JSONResult result = new FireREST().getJSON(processUrl);
     } catch (Exception e) {
       System.out.println("CAUGHT EXPECTED EXCEPTION: " + e.getMessage());
       caughtException = e;
