@@ -33,7 +33,8 @@ public class IPv4Scanner implements Runnable {
     List<Thread> threads = new ArrayList<Thread>();
     long addrStart = asLongAddress(start);
     long addrEnd = addrStart + count;
-    int probesPerThread = 8;
+    int maxThreads = 256;
+    int probesPerThread = (count+maxThreads-1)/maxThreads;
     for (long addr = addrStart; addr < addrEnd; addr += probesPerThread) {
       try {
         InetAddress iaddr = asInetAddress(addr);
