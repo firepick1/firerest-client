@@ -21,11 +21,17 @@ public class TestFireREST extends TestCase {
   /**
    * @return the suite of tests being tested
    */
-  public static Test suite() {
+  public static Test suite() throws Exception {
+    Exception caughtException = null;
+    JSONResult json = new JSONResult(null);
     try {
-      URL url = new URL("http://localhost:8080/");
-      Object content = url.getContent();
-    } catch (Exception e) {
+      URL url = new URL("http://localhost:8080/firerest/config.json");
+      json = new FireREST().getJSON(url);
+    } catch(Exception e) {
+      caughtException = e;
+      e.printStackTrace();
+    }
+    if (caughtException != null || json.isNull()) {
       StringBuilder msg = new StringBuilder();
       msg.append("\n");
       msg.append("----------------ERROR---------------\n");
