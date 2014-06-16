@@ -43,7 +43,6 @@ public class TestIPv4Scanner extends TestCase {
 
     InetAddress host0 = IPv4Scanner.subnetAddress0(null, 24);
     Collection<InetAddress> addresses = IPv4Scanner.scanRange(host0, 255, 500);
-    assertTrue(addresses.size() > 0); // localhost
     System.out.println("Addresses found:");
     for (InetAddress addr: addresses) {
       System.out.print(addr.getHostAddress());

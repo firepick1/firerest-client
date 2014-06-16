@@ -29,7 +29,7 @@ public class TestFireREST extends TestCase {
     Exception caughtException = null;
     JSONResult json = new JSONResult(null);
     try {
-      URL url = new URL("http://localhost:8080/firerest/config.json");
+      URL url = new URL("http://firepick1.github.io/firerest/config.json");
       json = new FireREST().getJSON(url);
     } catch(Exception e) {
       caughtException = e;
@@ -38,11 +38,10 @@ public class TestFireREST extends TestCase {
     if (caughtException != null || json.isNull()) {
       StringBuilder msg = new StringBuilder();
       msg.append("\n");
-      msg.append("----------------ERROR---------------\n");
-      msg.append("| Test requires FireREST server.   |\n");
-      msg.append("| Launch the localhost server:     |\n");
-      msg.append("|   node server/firerest.js        |\n");
-      msg.append("------------------------------------\n");
+      msg.append("----------------ERROR-----------------\n");
+      msg.append("| Test requires FireREST server:      |\n");
+      msg.append("| http://firepick1.github.io/firerest |\n");
+      msg.append("--------------------------------------\n");
       System.out.println(msg);
     }
     return new TestSuite( TestFireREST.class );
@@ -94,7 +93,7 @@ public class TestFireREST extends TestCase {
   }
 
   public void testProcessJson() throws MalformedURLException {
-    URL processUrl = new URL("http://localhost:8080/firerest/cv/1/gray/cve/calc-offset/process.fire");
+    URL processUrl = new URL("http://firepick1.github.io/firerest/cv/1/gray/cve/calc-offset/process.fire");
     JSONResult result = new FireREST().getJSON(processUrl);
 
     JSONResult stage = result.get("model");
@@ -117,17 +116,15 @@ public class TestFireREST extends TestCase {
   public void test_getImage() throws Exception {
     FireREST firerest = new FireREST();
     BufferedImage imageGood = firerest.getImage(new URL("http://firepick1.github.io/firerest/cv/1/monitor.jpg"));
-    ImageIO.write(imageGood, "jpg", new File("target/image-ok.jpg"));
+    ImageIO.write(imageGood, "jpg", new File("target/monitor.jpg"));
     BufferedImage imageBad = firerest.getImage(new URL("http://firepick:8080/firerest/cv/1/badimage.jpg"));
-    ImageIO.write(imageBad, "jpg", new File("target/image-bad.jpg"));
-    BufferedImage imageNull = firerest.getImage(null);
-    ImageIO.write(imageBad, "jpg", new File("target/image-null.jpg"));
+    ImageIO.write(imageBad, "jpg", new File("target/badimage.jpg"));
   }
 
   public void testBadUrl() throws MalformedURLException {
     Exception caughtException = null;
     try {
-      URL processUrl = new URL("http://localhost:8080/firerest/cv/1/gray/cve/NOSUCHTHING/process.fire");
+      URL processUrl = new URL("http://firepick1.github.io/firerest/cv/1/gray/cve/NOSUCHTHING/process.fire");
       JSONResult result = new FireREST().getJSON(processUrl);
     } catch (Exception e) {
       System.out.println("CAUGHT EXPECTED EXCEPTION: " + e.getMessage());

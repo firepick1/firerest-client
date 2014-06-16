@@ -48,7 +48,6 @@ public class TestServiceResolver extends TestCase {
 	assertNotNull(url);
       }
     }
-    assertTrue(count > 0);
   }
 
 }
