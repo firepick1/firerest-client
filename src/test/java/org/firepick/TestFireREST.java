@@ -117,9 +117,11 @@ public class TestFireREST extends TestCase {
   public void test_getImage() throws Exception {
     FireREST firerest = new FireREST();
     BufferedImage imageGood = firerest.getImage(new URL("http://firepick1.github.io/firerest/cv/1/monitor.jpg"));
-    ImageIO.write(imageGood, "jpg", new File("target/monitor.jpg"));
+    ImageIO.write(imageGood, "jpg", new File("target/image-ok.jpg"));
     BufferedImage imageBad = firerest.getImage(new URL("http://firepick:8080/firerest/cv/1/badimage.jpg"));
-    ImageIO.write(imageBad, "jpg", new File("target/badimage.jpg"));
+    ImageIO.write(imageBad, "jpg", new File("target/image-bad.jpg"));
+    BufferedImage imageNull = firerest.getImage(null);
+    ImageIO.write(imageBad, "jpg", new File("target/image-null.jpg"));
   }
 
   public void testBadUrl() throws MalformedURLException {

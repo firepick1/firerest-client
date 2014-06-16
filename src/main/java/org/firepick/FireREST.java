@@ -18,6 +18,7 @@ public class FireREST {
   static Logger logger = LoggerFactory.getLogger(FireREST.class);
   private int imageWidth = 800;
   private int imageHeight = 200;
+  private BufferedImage imageBuffer;
 
   private int msTimeout = 500;
   private HashMap<URL,LIFOCache<BufferedImage>> imageMap = new HashMap<URL,LIFOCache<BufferedImage>>();
@@ -32,13 +33,24 @@ public class FireREST {
     return new FireREST(this, msTimeout);
   }
 
+  /**
+   * Return image dimensions of last retrieved image
+   * @return Point(width, height)
+   */
   public Point getImageSize() {
     return new Point(imageWidth, imageHeight);
   }
 
+  /**
+   * Return an red image with the given text auto-sized to fit the current imageWidthximageHeight
+   * @param lines one or more lines of text
+   * @return image
+   */
   public BufferedImage errorImage(String... lines) {
-    BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
-    Graphics2D g = (Graphics2D) image.getGraphics();
+    if (imageBuffer == null || imageBuffer.getWidth() != imageWidth || imageBuffer.getHeight() != imageHeight) {
+      imageBuffer = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+    }
+    Graphics2D g = (Graphics2D) imageBuffer.getGraphics();
     g.setBackground(new Color(64,32,32));
     g.setColor(new Color(255,64,64));
     g.clearRect(0, 0, imageWidth, imageHeight);
@@ -50,9 +62,9 @@ public class FireREST {
     }
     int padding = 20;
     float sizeForWidth = 1.8f*(imageWidth-padding-padding)/maxLen; // should use TextLayout
-    System.out.println("sizeForWidth:" + sizeForWidth);
+    //System.out.println("sizeForWidth:" + sizeForWidth);
     float sizeForHeight = (imageHeight-padding-padding)/lines.length;
-    System.out.println("sizeForHeight:" + sizeForHeight);
+    //System.out.println("sizeForHeight:" + sizeForHeight);
     float lineHeight = Math.min(80, Math.max(12, Math.min(sizeForWidth, sizeForHeight)));
     float fontSize = 0.8f * lineHeight;
     Font font = g.getFont().deriveFont(fontSize);
@@ -62,10 +74,19 @@ public class FireREST {
       g.drawString(line, padding, y);
       y += lineHeight;
     }
-    return image;
+    return imageBuffer;
   }
 
+  /**
+   * Return image from given URL.
+   * 
+   * @return image from url or image with error text
+   */
   public BufferedImage getImage(URL url) {
+    String now = new Date().toString();
+    if (url == null) {
+      return errorImage(now, "(No image url)");
+    }
     try {
       BufferedImage image =  ImageIO.read(url);
       imageWidth = image.getWidth();
@@ -73,7 +94,7 @@ public class FireREST {
       return image;
     } catch (Exception e) {
       logger.warn("getImage({}) => {}", url, e.getMessage());
-      return errorImage(new Date().toString(), "(No image)", url.toString(), e.getMessage());
+      return errorImage(now, "(No image)", url.toString(), e.getMessage());
     }
   }
 
