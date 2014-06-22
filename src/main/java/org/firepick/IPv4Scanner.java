@@ -13,24 +13,32 @@ public class IPv4Scanner implements Runnable {
   int msTimeout;
   List<InetAddress> addresses = new ArrayList<InetAddress>();
 
-  public static InetAddress localNetworkAddress() throws UnknownHostException, SocketException {
+  /**
+   * Return list of InetAddress for localhost that are not 127.*.*.*.
+   * If no such address is found, return InetAddress.getLocalHost().
+   * 
+   * @return address list with size() >= 1
+   */
+  public static List<InetAddress> localNetworkAddresses() throws UnknownHostException, SocketException {
+    List<InetAddress> result = new ArrayList<InetAddress>();
     InetAddress localhost = InetAddress.getLocalHost();
-    if (!"127.0.0.1".equals(localhost.getHostAddress())) {
-      return localhost;
-    }
-    Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
-    while (n.hasMoreElements()) {
-      NetworkInterface e = n.nextElement();
-      Enumeration<InetAddress> a = e.getInetAddresses();
-      while (a.hasMoreElements()) {
-	localhost = a.nextElement();
-	if (!"127.0.0.1".equals(localhost.getHostAddress())) {
-	  return localhost;
+    if (localhost.getHostAddress().startsWith("127")) {
+      Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+      while (n.hasMoreElements()) {
+	NetworkInterface e = n.nextElement();
+	Enumeration<InetAddress> a = e.getInetAddresses();
+	while (a.hasMoreElements()) {
+	  localhost = a.nextElement();
+	  if (!localhost.getHostAddress().startsWith("127")) {
+	    result.add(localhost);
+	  }
 	}
       }
     }
-    throw new RuntimeException("COULD NOT FIND LOCALHOST ADDRESS");
-    //return localhost;
+    if (result.size() == 0) {
+      result.add(localhost);
+    }
+    return result;
   }
 
   /**
@@ -100,7 +108,7 @@ public class IPv4Scanner implements Runnable {
   public static InetAddress subnetAddress0(InetAddress addr, int subnetBits) {
     if (addr == null) {
       try {
-	addr = localNetworkAddress();
+	addr = localNetworkAddresses().get(0);
       } catch (Exception e) {
 	throw new FireRESTException(e); // Should not happen
       }
