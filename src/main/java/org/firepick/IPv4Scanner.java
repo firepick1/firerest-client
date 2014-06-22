@@ -14,6 +14,34 @@ public class IPv4Scanner implements Runnable {
   List<InetAddress> addresses = new ArrayList<InetAddress>();
 
   /**
+   * Return list of InetAddress for localhost that are not 127.*.*.*.
+   * If no such address is found, return InetAddress.getLocalHost().
+   * 
+   * @return address list with size() >= 1
+   */
+  public static List<InetAddress> localNetworkAddresses() throws UnknownHostException, SocketException {
+    List<InetAddress> result = new ArrayList<InetAddress>();
+    InetAddress localhost = InetAddress.getLocalHost();
+    if (localhost.getHostAddress().startsWith("127")) {
+      Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+      while (n.hasMoreElements()) {
+	NetworkInterface e = n.nextElement();
+	Enumeration<InetAddress> a = e.getInetAddresses();
+	while (a.hasMoreElements()) {
+	  localhost = a.nextElement();
+	  if (!localhost.getHostAddress().startsWith("127")) {
+	    result.add(localhost);
+	  }
+	}
+      }
+    }
+    if (result.size() == 0) {
+      result.add(localhost);
+    }
+    return result;
+  }
+
+  /**
    * Scan a range of InetAddresses starting with the given address
    *
    * @param start starting address of search; null implies subnetAddress0(null,24)
@@ -37,12 +65,12 @@ public class IPv4Scanner implements Runnable {
     int probesPerThread = (count+maxThreads-1)/maxThreads;
     for (long addr = addrStart; addr < addrEnd; addr += probesPerThread) {
       try {
-        InetAddress iaddr = asInetAddress(addr);
-        long nProbes = Math.min(addrEnd, addr + probesPerThread) - addr;
-        IPv4Scanner scanner = new IPv4Scanner(iaddr, (int) nProbes, msTimeout);
-        scanners.add(scanner);
+	InetAddress iaddr = asInetAddress(addr);
+	long nProbes = Math.min(addrEnd, addr + probesPerThread) - addr;
+	IPv4Scanner scanner = new IPv4Scanner(iaddr, (int) nProbes, msTimeout);
+	scanners.add(scanner);
       } catch (UnknownHostException e) {
-        throw new FireRESTException(e); // should never happen since addr is always valid
+	throw new FireRESTException(e); // should never happen since addr is always valid
       }
     }
     for (IPv4Scanner scanner: scanners) {
@@ -52,9 +80,9 @@ public class IPv4Scanner implements Runnable {
     }
     for (Thread thread: threads) {
       try {
-        thread.join();
+	thread.join();
       } catch (Exception e) {
-        // ignore ThreadInterruptedException
+	// ignore ThreadInterruptedException
       }
     }
     for (IPv4Scanner scanner: scanners) {
@@ -80,8 +108,8 @@ public class IPv4Scanner implements Runnable {
   public static InetAddress subnetAddress0(InetAddress addr, int subnetBits) {
     if (addr == null) {
       try {
-	addr = InetAddress.getLocalHost();
-      } catch (UnknownHostException e) {
+	addr = localNetworkAddresses().get(0);
+      } catch (Exception e) {
 	throw new FireRESTException(e); // Should not happen
       }
     }
