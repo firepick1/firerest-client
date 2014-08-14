@@ -13,23 +13,40 @@ public class IPv4Scanner implements Runnable {
   int msTimeout;
   List<InetAddress> addresses = new ArrayList<InetAddress>();
 
+  /** @see localhostNetworkAddresses */
+  @Deprecated
+  public static List<InetAddress> localNetworkAddresses() 
+  throws UnknownHostException, SocketException {
+    return localhostNetworkAddresses();
+  }
+
   /**
-   * Return list of InetAddress for localhost that are not 127.*.*.*.
-   * If no such address is found, return InetAddress.getLocalHost().
+   * Return list of InetAddress for localhost that are not loopback addresses
+   * (e.g., 127.0.0.1)
    * 
    * @return address list with size() >= 1
    */
-  public static List<InetAddress> localNetworkAddresses() throws UnknownHostException, SocketException {
+  public static List<InetAddress> localhostNetworkAddresses() 
+    throws UnknownHostException, SocketException 
+  {
     List<InetAddress> result = new ArrayList<InetAddress>();
-    InetAddress localhost = InetAddress.getLocalHost();
-    if (localhost.getHostAddress().startsWith("127")) {
+    InetAddress localhost = null;
+    try {
+  //    localhost = InetAddress.getLocalHost();
+      throw new UnknownHostException();
+    } catch(UnknownHostException ex) {
+      logger.debug("localhostNetworkAddresses InetAddress.getLocalHost() failed");
+    }
+    if (localhost == null || localhost.getHostAddress().startsWith("127")) {
       Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
       while (n.hasMoreElements()) {
 	NetworkInterface e = n.nextElement();
 	Enumeration<InetAddress> a = e.getInetAddresses();
 	while (a.hasMoreElements()) {
 	  localhost = a.nextElement();
-	  if (!localhost.getHostAddress().startsWith("127")) {
+	  if (localhost.isLoopbackAddress()) {
+	    // ignore
+	  } else {
 	    result.add(localhost);
 	  }
 	}
@@ -48,15 +65,38 @@ public class IPv4Scanner implements Runnable {
    * @param count number of addresses in range
    * @param msTimeout maximum time to wait for each host
    */
-  public static Collection<InetAddress> scanRange(InetAddress start, int count, int msTimeout) {
-    if (start == null) {
-      start = subnetAddress0(null, 24);
+  public static Collection<InetAddress> scanRange(InetAddress addr, int count, int msTimeout) {
+    Collection<InetAddress> addresses = new ArrayList<InetAddress>();
+    Collection<InetAddress> result = new ArrayList<InetAddress>();
+    if (addr == null) {
+      try {
+	addresses.addAll(localhostNetworkAddresses());
+      } catch (Exception e) {
+	throw new FireRESTException(e); // Should not happen
+      }
+    } else {
+      addresses.add(addr);
+    }
+
+    for (InetAddress a: addresses) {
+      if (a instanceof Inet4Address) {
+	InetAddress start = subnetAddress0(a, 24);
+	result.addAll(scanRangeCore(start, count, msTimeout));
+      }
+    }
+
+    return result;
+  }
+
+  static Collection<InetAddress> scanRangeCore(InetAddress start, int count, int msTimeout) {
+    Collection<InetAddress> result = new ArrayList<InetAddress>();
+    if (!(start instanceof Inet4Address)) {
+      return result;
     }
     logger.info("scanning {} addresses starting with {}", count, start.getHostAddress());
     if (count < 1 || 4096 <= count) {
       throw new FireRESTException("Expected 0 < count < 4096");
     }
-    Collection<InetAddress> result = new ArrayList<InetAddress>();
     List<IPv4Scanner> scanners = new ArrayList<IPv4Scanner>();
     List<Thread> threads = new ArrayList<Thread>();
     long addrStart = asLongAddress(start);
@@ -101,18 +141,11 @@ public class IPv4Scanner implements Runnable {
   /**
    * Return first address on subnet containing given address
    *
-   * @param addr any machine in subnet or null for localhost
+   * @param addr any machine in subnet 
    * @param subnetBits the number of bits in subnet mask. Many small networks use 24.
    * @return first address on subnet. E.g., subnetAddress(10.0.1.88, 25) -> 10.0.1.0
    */
   public static InetAddress subnetAddress0(InetAddress addr, int subnetBits) {
-    if (addr == null) {
-      try {
-	addr = localNetworkAddresses().get(0);
-      } catch (Exception e) {
-	throw new FireRESTException(e); // Should not happen
-      }
-    }
     if (subnetBits < 1 || 32 <= subnetBits) {
       throw new FireRESTException("Expected subnetBits 1..31");
     }
@@ -130,11 +163,13 @@ public class IPv4Scanner implements Runnable {
   }
 
   public static long asLongAddress(InetAddress addr) {
-    byte [] rawaddr = addr.getAddress();
     long result = 0;
-    for (int i = 0; i < 4; i++) {
-      result <<= 8;
-      result |= 0xff & (long)rawaddr[i];
+    if (addr != null && addr instanceof Inet4Address) {
+      byte [] rawaddr = addr.getAddress();
+      for (int i = 0; i < 4; i++) {
+	result <<= 8;
+	result |= 0xff & (long)rawaddr[i];
+      }
     }
     return result;
   }
