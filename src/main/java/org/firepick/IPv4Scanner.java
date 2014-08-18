@@ -29,6 +29,10 @@ public class IPv4Scanner implements Runnable {
   public static List<InetAddress> localhostNetworkAddresses() 
     throws UnknownHostException, SocketException 
   {
+    // TODO: query the network interfaces for an IPv4 broadcast address
+    // If available, broadcast will use about half as much bandwidth,
+    // since only 1 request is sent. However, the IPv4 broadcast address
+    // might not be available. In this case, individual pings will work.
     List<InetAddress> result = new ArrayList<InetAddress>();
     InetAddress localhost = null;
     try {
